@@ -18,7 +18,8 @@ def webhook():
 	# 'message' is an object that represents a single GroupMe message.
 	message = request.get_json()
 
-	# TODO: Your bot's logic here
+	if 'groot' in message['text'].lower() and not sender_is_bot(message): # if message contains 'groot', ignoring case, and sender is not a bot...
+		reply('I am Groot.')
 
 	return "ok", 200
 
@@ -37,34 +38,13 @@ def reply(msg):
 # Send a message with an image attached in the groupchat
 def reply_with_image(msg, imgURL):
 	url = 'https://api.groupme.com/v3/bots/post'
-	urlOnGroupMeService = upload_image_to_groupme(imgURL)
 	data = {
 		'bot_id'		: bot_id,
 		'text'			: msg,
-		'picture_url'		: urlOnGroupMeService
+		'attachments'	: [{"type": "image", "url":imgURL}]
 	}
 	request = Request(url, urlencode(data).encode())
 	json = urlopen(request).read().decode()
-	
-# Uploads image to GroupMe's services and returns the new URL
-def upload_image_to_groupme(imgURL):
-	imgRequest = requests.get(imgURL, stream=True)
-	filename = 'temp.png'
-	postImage = None
-	if imgRequest.status_code == 200:
-		# Save Image
-		with open(filename, 'wb') as image:
-			for chunk in imgRequest:
-				image.write(chunk)
-		# Send Image
-		headers = {'content-type': 'application/json'}
-		url = 'https://image.groupme.com/pictures'
-		files = {'file': open(filename, 'rb')}
-		payload = {'access_token': 'eo7JS8SGD49rKodcvUHPyFRnSWH1IVeZyOqUMrxU'}
-		r = requests.post(url, files=files, params=payload)
-		imageurl = r.json()['payload']['url']
-		os.remove(filename)
-		return imageurl
 
 # Checks whether the message sender is a bot
 def sender_is_bot(message):
